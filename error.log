@@ -1,4 +1,0 @@
-[Sat Jan 02 14:49:01.534317 2021] [php7:notice] [pid 14269] [client 127.0.0.1:50486] PHP Notice:  unserialize(): Error at offset 0 of 65 bytes in /var/www/html/lwdk-php/public_html/lwdk/engine/classes/database.php on line 17
-[Sat Jan 02 14:49:15.881298 2021] [php7:notice] [pid 14326] [client 127.0.0.1:50488] PHP Notice:  unserialize(): Error at offset 0 of 43 bytes in /var/www/html/lwdk-php/public_html/lwdk/engine/classes/database.php on line 17
-[Sat Jan 02 14:52:18.503294 2021] [php7:notice] [pid 14266] [client 127.0.0.1:50492] PHP Notice:  unserialize(): Error at offset 0 of 27 bytes in /var/www/html/lwdk-php/public_html/lwdk/engine/classes/database.php on line 17
-[Sat Jan 02 14:54:29.994052 2021] [php7:notice] [pid 14267] [client 127.0.0.1:50496] PHP Notice:  unserialize(): Error at offset 0 of 84 bytes in /var/www/html/lwdk-php/public_html/lwdk/engine/classes/database.php on line 17

@@ -1,19 +1,33 @@
 <?php
     class lwdk {
+
+        private $msgs = array();
+
         function __construct(){
             $this->setup();
         }
 
         private function setup(){
+            ini_set('memory_limit', '-1');
+            date_default_timezone_set('America/Sao_Paulo');
+            session_start();
+
             foreach(glob("lwdk/engine/classes/*.php") as $file){
                 require $file;
             }
 
             $this->path = __paths::get();
+            $this->database = new __database($this);
 
-            ini_set('memory_limit', '-1');
-            date_default_timezone_set('America/Sao_Paulo');
-            session_start();
+            var_dump($this);
+        }
+
+        public function message(String $msg){
+            $msg = "\n{$msg}<br /><br />\n\n";
+            if(!in_array($msg, $this->msgs)){
+                $this->msgs[] = $msg;
+                echo $msg;
+            }
         }
 
         private function https(bool $state=false){
