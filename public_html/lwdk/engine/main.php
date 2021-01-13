@@ -1,4 +1,8 @@
 <?php
+    foreach(glob("lwdk/engine/classes/*.php") as $file){
+        require $file;
+    }
+
     class lwdk {
 
         private $msgs = array();
@@ -12,14 +16,8 @@
             date_default_timezone_set('America/Sao_Paulo');
             session_start();
 
-            foreach(glob("lwdk/engine/classes/*.php") as $file){
-                require $file;
-            }
-
             $this->path = __paths::get();
             $this->database = new __database($this);
-
-            var_dump($this);
         }
 
         public function message(String $msg){
@@ -30,7 +28,7 @@
             }
         }
 
-        private function https(bool $state=false){
+        public function https(bool $state=false){
             $https = [
                 ($state && $_SERVER['SERVER_ADDR'] != "127.0.0.1"),
                 ((! empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
@@ -47,6 +45,10 @@
             } else {
                 return $https[0] == $https[1];
             }
+        }
+
+        public function helloWorld(){
+            echo $this->getApp()->rootDir();
         }
     }
 ?>
