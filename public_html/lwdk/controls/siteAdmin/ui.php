@@ -2,7 +2,7 @@
     function ctrl_siteAdmin_ui($args){
         $instance = new class extends APPControls {
             function exec(){
-                return $this->foobar() . $this->args["nome"];
+                return print_r($this->args["this"], true);
             }
         };
 

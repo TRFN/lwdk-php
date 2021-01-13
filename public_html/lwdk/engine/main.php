@@ -47,8 +47,10 @@
             }
         }
 
-        public function helloWorld(){
-            echo $this->getApp()->rootDir();
+        public function renderApp(){
+            $this->selectApp();
+            $this->getApp()->controls();
+            $this->getApp()->getPage();
         }
     }
 ?>

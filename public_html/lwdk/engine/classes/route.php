@@ -8,8 +8,11 @@
             $this->Applications = array();
         }
 
-        function addApp(Object $class, bool $default = false){
+        function addApp(APPObject $class, lwdk $parent, bool $default = false){
+            $class->setParent($parent);
+
             $this->Applications[] = $class;
+
             if($default){
                 $this->defaultApplication = count($this->Applications) - 1;
             }

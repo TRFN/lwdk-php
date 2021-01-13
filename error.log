@@ -1,0 +1,1 @@
+[Wed Jan 13 08:05:35.623226 2021] [php7:notice] [pid 7395] [client 127.0.0.1:36588] PHP Notice:  Undefined offset: 1 in /var/www/html/lwdk-php/public_html/lwdk/engine/classes/APPObject.php on line 30
