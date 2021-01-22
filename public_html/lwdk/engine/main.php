@@ -3,6 +3,10 @@
         require $file;
     }
 
+    spl_autoload_register(function($c) {
+        include(__paths::get()->templates . "/ux/{$c}.php");
+    });
+
     class lwdk {
 
         private $msgs = array();

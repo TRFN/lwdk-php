@@ -10,6 +10,7 @@ class __paths {
         $pathRoute->templates = "{$pathRoute->root}/templates";
         $pathRoute->models = "{$pathRoute->root}/models";
         $pathRoute->plugins = "{$pathRoute->root}/plugins";
+        $pathRoute->layouts = "{$pathRoute->root}/layouts";
 
         return $pathRoute;
     }
