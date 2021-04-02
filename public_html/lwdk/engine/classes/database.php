@@ -14,9 +14,20 @@
 
     class __database {
         private $password = "none";
+        private $backupToRepeatRequest = "none";
+        public  $debug = true;
 
-        function __construct($ctx){
-            $this->context = $ctx;
+        private function backupToPreventRepeat(){
+            if($this->backupToRepeatRequest === "none"){
+                return false;
+            } else {
+                return $this->backupToRepeatRequest;
+            }
+        }
+
+        private function saveData($file, $content){
+            $this->backupToRepeatRequest = is_array($content) ? $content[1]:unserialize($content);
+            file_put_contents($file, is_array($content) ? $content[1]:($content));
         }
 
         private function like(String $needle, String $haystack, String $options = ""){
@@ -41,6 +52,8 @@
                         $conditions[$key1][$key2] = array(2, array_map('trim', explode(">", $value2)));
                     } elseif($this->like("%\<%", $conditions[$key1][$key2])){
                         $conditions[$key1][$key2] = array(3, array_map('trim', explode("<", $value2)));
+                    } elseif($this->like("%\~%", $conditions[$key1][$key2])){
+                        $conditions[$key1][$key2] = array(4, array_map('trim', explode("~", $value2)));
                     }
                 }
             }
@@ -49,7 +62,11 @@
         }
 
         public function path($file){
-            return "{$this->context->path->database}/{$file}.data";
+            return (new __paths)->get()->database . "/{$file}.data";
+        }
+
+        public function getAll($database){
+            return $this->query($database, "@ID != -1");
         }
 
         public function set(String $file, $key, $value=null){
@@ -66,12 +83,32 @@
 
             $content = serialize($content);
             if($this->password != "none"){
-                $content = crypto::crypt($content, $this->password);
+                $content = array(crypto::crypt($content, $this->password),$content);
             }
-            file_put_contents($file, $content);
+            $this->saveData($file, $content);
         }
 
-        public function get(String $file, $key="*"){
+        public function clean($file, String $mainId = "@ID", Array $filter = array(), String $by = "@ID > -1"){
+            if(count($filter) === 0){
+                $filter = "*";
+            }
+            $data = is_array($file) ? $file : $this->getAll($file);
+            $result = array();
+            $registered = array();
+            foreach($data as $content){
+                if(isset($content[$mainId])){
+                    $id = sha1($content[$mainId]);
+                    $hash = md5(serialize($content));
+                    if(!in_array($hash, $registered)){
+                        $result[$id] = $content;
+                        $registered[] = $hash;
+                    }
+                }
+            }
+            return $this->query(array_values($result), $by, $filter);
+        }
+
+        public function get(String $file, $key="*", $primary_key_set = true){
             $_file = $this->path($file);
             $content = array();
             if(file_exists($_file)){
@@ -83,7 +120,6 @@
             }
 
             if($content == false){
-                $this->context->message("<strong>WARNING</strong>: The database \"<big>{$file}.data</big>\" is damanged or the password is wrong! Please verify.");
                 return array();
             }
 
@@ -101,7 +137,7 @@
             foreach($result as $key=>$value){
                 if($value == -1){
                     unset($result[$key]);
-                } else {
+                } elseif($primary_key_set){
                     $result[$key]["@ID"] = $key;
                 }
             }
@@ -110,45 +146,53 @@
         }
 
         public function push(String $file, $key, $value=null){
-            $content = $this->get($file);
+            $content = $this->get($file, "*", false);
             $file = $this->path($file);
 
             if(is_array($key)){
+                if($value === "log_remove"){
+                    $log = false;
+                } else {
+                    $log = true;
+                }
                 foreach($key as $keyword=>$value){
-                    if(is_array($value)){
+                    if(is_array($value) && $log){
                         $value["@CREATED"] = $this->getCurrentDateTime();
                     }
                     $content[] = $value;
                 }
             } else {
-                if($value == null){
-                    if(is_array($key)){
-                        $key["@CREATED"] = $this->getCurrentDateTime();
-                    }
-                    $content[] = $key;
-                } else {
-                    if(is_array($value)){
-                        $value["@CREATED"] = $this->getCurrentDateTime();
-                    }
-                    $content[$key] = $value;
+
+                if(is_array($value)){
+                    $value["@CREATED"] = $this->getCurrentDateTime();
                 }
+                $content[$key] = $value;
+
             }
+
+            $lastid = count($content)-1;
 
             $content = serialize($content);
             if($this->password != "none"){
-                $content = crypto::crypt($content, $this->password);
+                $content = array(crypto::crypt($content, $this->password),$content);
             }
-            file_put_contents($file, $content);
+
+            $this->saveData($file, $content);
+
+            return $lastid;
         }
 
         public function query($file, String $query, $keys = "*", bool $ignoreCase = true){
-            if(is_array($file)){
+            if($this->backupToPreventRepeat()!==false && $this->backupToPreventRepeat()[0] === $file){
+                $content = $this->backupToPreventRepeat()[1];
+            }
+
+            elseif(is_array($file)){
                 $content = $file;
             } else {
                 $content = $this->get($file);
+                $this->backupToRepeatRequest = array($file, $content);
             }
-
-            // var_dump($content);
 
             $results = [];
 
@@ -178,6 +222,20 @@
                                 case 3:
                                     $find = ($find || (isset($content[$key][$orKeyword[1][0]]) && ((int)$orKeyword[1][1]>(int)$content[$key][$orKeyword[1][0]])));
                                 break;
+                                case 4:
+                                    if(isset($content[$key][$orKeyword[1][0]]) && is_array($content[$key][$orKeyword[1][0]])){
+                                        $string_array = array((string)$orKeyword[1][1],array());
+                                        $number_array = array((int)$orKeyword[1][1],array());
+
+                                        foreach((array)$content[$key][$orKeyword[1][0]] as $val){
+                                            $string_array[1][] = (string)$val;
+                                            $number_array[1][] = (int)$val;
+                                        }
+
+                                        $find = ($find || in_array($string_array[0],$string_array[1]));
+                                        $find = ($find || in_array($number_array[0],$number_array[1]));
+                                    }
+                                break;
                             }
                         }
 
@@ -187,19 +245,34 @@
 
                     // echo "\nEND-OF-AND:" . print_r($findGlobal,true) . "\n";
 
+                    $result = array();
+
                     if($findGlobal){
                         if(is_array($keys)){
                             foreach($keys as $keyword){
                                 $result[$keyword] = $content[$key][$keyword];
+
+                                // $test = json_encode($content[$key][$keyword]);
+                                // echo "\n\n-IF1::incorrect::{$test}-\n\n";
                             }
                         } elseif($keys == "*") {
                             $result = $content[$key];
-                            // echo "GETS: {$key} \n";
+                            $test = json_encode($content[$key]);
+                            // echo "\n\n-IF2::incorrect::{$test}-\n\n";
                         } else {
-                            $result = $content[$key][$keys];
+                            if(preg_match_all("/\//",$keys) === 1){
+                                $keys_copy = explode("/", $keys);
+                                $results[$content[$key][$keys_copy[0]]] = $content[$key][$keys_copy[1]];
+                                // echo "\n\n-IF3::correct::{$content[$key][$keys_copy[1]]}-\n\n";
+                            } else {
+                                $result = $content[$key][$keys];
+                                $test = $content[$key][$keys];
+                                // echo "\n\n-IF4::incorrect::{$test}-\n\n";
+                            }
                         }
-
-                        $results[] = $result;
+                        if(!(is_array($result) && count($result) == 0)){
+                            $results[] = $result;
+                        }
                     }
                 }
             }
@@ -230,9 +303,9 @@
 
             $content = serialize($content);
             if($this->password != "none"){
-                $content = crypto::crypt($content, $this->password);
+                $content = array(crypto::crypt($content, $this->password),$content);
             }
-            return file_put_contents($file, $content);
+            return $this->saveData($file, $content);
         }
 
         public function deleteWhere(String $file, String $by){
@@ -249,9 +322,9 @@
 
             $content = serialize($content);
             if($this->password != "none"){
-                $content = crypto::crypt($content, $this->password);
+                $content = array(crypto::crypt($content, $this->password),$content);
             }
-            return file_put_contents($file, $content);
+            return $this->saveData($file, $content);
         }
 
         public function setPassword(String $password){
@@ -272,10 +345,10 @@
             // var_dump($content);
             // exit;
             $this->setPassword($password);
-            $content = crypto::crypt($content, $this->password);
+            $content = array(crypto::crypt($content, $this->password),$content);
             // var_dump($content);
             // exit;
-            file_put_contents($this->path($file), $content);
+            $this->saveData($this->path($file), $content);
         }
 
         public function unProtectPassword(String $file, String $password){
@@ -285,7 +358,7 @@
             if(count($content) == 0)return false;
             $content = serialize($content);
             // var_dump($content);
-            file_put_contents($this->path($file), $content);
+            $this->saveData($this->path($file), $content);
             $this->removePassword();
         }
 
@@ -295,9 +368,8 @@
             if(count($content) == 0)return false;
             $content = serialize($content);
             $this->setPassword($password);
-            $content = crypto::crypt($content, $this->password);
-            file_put_contents($this->path($file), $content);
+            $content = array(crypto::crypt($content, $this->password),$content);
+            $this->saveData($this->path($file), $content);
         }
-
     }
 ?>

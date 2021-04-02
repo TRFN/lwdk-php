@@ -1,6 +1,30 @@
 <?php
+    session_start();
+    // set_time_limit(0);
+    error_reporting(E_ALL);
+    ini_set('memory_limit','-1');
+    ini_set('display_errors', 0);
+    ini_set('display_startup_errors', 0);
+    date_default_timezone_set('America/Sao_Paulo');
+
     foreach(glob("lwdk/engine/classes/*.php") as $file){
-        require $file;
+        require_once $file;
+    }
+
+    foreach(glob("lwdk/sections/*/*/*/*.php") as $file){
+        require_once $file;
+    }
+
+    foreach(glob("lwdk/sections/*/*/*.php") as $file){
+        require_once $file;
+    }
+
+    foreach(glob("lwdk/sections/*/*.php") as $file){
+        require_once $file;
+    }
+
+    foreach(glob("lwdk/sections/*.php") as $file){
+        require_once $file;
     }
 
     spl_autoload_register(function($c) {
@@ -11,15 +35,7 @@
 
         private $msgs = array();
 
-        function __construct(){
-            $this->setup();
-        }
-
-        private function setup(){
-            ini_set('memory_limit', '-1');
-            date_default_timezone_set('America/Sao_Paulo');
-            session_start();
-
+        public function setup(){
             $this->path = __paths::get();
             $this->database = new __database($this);
         }
@@ -29,25 +45,6 @@
             if(!in_array($msg, $this->msgs)){
                 $this->msgs[] = $msg;
                 echo $msg;
-            }
-        }
-
-        public function https(bool $state=false){
-            $https = [
-                ($state && $_SERVER['SERVER_ADDR'] != "127.0.0.1"),
-                ((! empty($_SERVER['REQUEST_SCHEME']) && $_SERVER['REQUEST_SCHEME'] == 'https') ||
-                (! empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') ||
-                (! empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == '443'))
-            ];
-
-            if($https[0] && !$https[1]){
-                header("Location: https://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
-                exit;
-            } elseif(!$https[0] && $https[1]){
-                header("Location: http://" . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
-                exit;
-            } else {
-                return $https[0] == $https[1];
             }
         }
 
