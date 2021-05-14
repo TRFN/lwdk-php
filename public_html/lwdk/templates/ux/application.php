@@ -6,8 +6,8 @@
         }
 
         function page_main($content){
-            echo "<pre>";
-			var_dump($content);
+			header("Content-Type: text/plain");
+            var_dump($content);
         }
     }
 ?>
