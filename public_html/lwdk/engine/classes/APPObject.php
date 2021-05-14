@@ -2,10 +2,308 @@
     class APPObject {
         private $dir = null;
         private $parent = null;
+        public  $uiTemplateObject;
         public  $defaultPage = "main";
         public  $defaultUiTemplate = null;
         public  $uiTemplate = false;
         public  $defaultVars = array();
+
+        function type($set="text/plain"){
+            header("Content-Type: {$set}");
+        }
+
+        function json($data){
+            $this->type("application/json");
+            exit(json_encode($data));
+        }
+
+        function dropzoneUpload(String $storeFolder = 'uploads',$notimg=false, $w=1024, $h=1024, $qlt=40){
+            $ds = DIRECTORY_SEPARATOR;
+            $targetPath = (new __paths)->get()->www . $ds. $storeFolder . $ds;  //4
+            if (!file_exists($targetPath)) {
+        		mkdir($targetPath, 0777, true);
+        	}
+
+            if (!empty($_FILES)) {
+                header("Content-Type: application/json");
+                $files = array();
+                foreach(array_keys($_FILES['file']['tmp_name']) as $i){
+                    $ext = explode(".", $_FILES['file']['name'][$i]);
+                    $ext = end($ext);
+
+                    if(!$notimg){
+                        do {
+                            $name_img = md5(uniqid());
+                        } while (file_exists($storeFolder . $ds . $name_img . "." . $ext));
+                    } else {
+                        $name_img = $_FILES['file']['name'][$i];
+                    }
+
+                    if(!$notimg){
+                        if($w === "not-resize"){
+                            $targetFile =  $targetPath . $name_img . "." . $ext;  //5
+                            $tempFile = $_FILES['file']['tmp_name'][$i];
+                            move_uploaded_file($tempFile,$targetFile);
+
+                            $files[] = $storeFolder . $ds . $name_img . "." . $ext;
+                        } else {
+                            $targetFile =  $targetPath . $name_img . "." . $ext;  //5
+                            $tempFile = $_FILES['file']['tmp_name'][$i];
+                            $targetFileResize =  $targetPath . $name_img . "r." . $ext;  //5
+                            if(move_uploaded_file($tempFile,$targetFileResize)){
+                                $files[] = $storeFolder . $ds . $name_img . "." . $ext;
+
+                                $resize = new ResizeImage($targetFileResize);
+                                $resize->resizeTo(1024, 1024);
+                                $resize->saveImage($targetFile, 35);
+
+                                unlink($targetFileResize);
+                            }
+                        }
+                    } else {
+                        $tempFile = $_FILES['file']['tmp_name'][$i];
+                        $targetFile =  $targetPath . $name_img;
+                        move_uploaded_file($tempFile,$targetFile);
+                        $files[] = $targetFile;
+                    }
+
+                }
+                exit(json_encode($files));
+            }
+        }
+
+        function slug($url){
+            $p = str_split(preg_replace("/[^0-9a-z\-]/", "-", strtolower(preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/","/(ç)/","/(Ç)/"),explode(" ","a A e E i I o O u U n N c C"),$url))));
+
+            return implode(array_map(function ($c) use ($p) {
+                return ($c > 0 && $p[$c] == $p[$c - 1] ? '': $p[$c]);
+            }, array_keys($p)));
+        }
+
+        function parseData($type, $data){
+            $fns = array(
+                function($cnpj) {
+                    // Deixa o CNPJ com apenas números
+                    $cnpj = preg_replace('/[^0-9]/', '', $cnpj);
+
+                    // Garante que o CNPJ é uma string
+                    $cnpj = (string) $cnpj;
+
+                    // O valor original
+                    $cnpj_original = $cnpj;
+
+                    // Captura os primeiros 12 números do CNPJ
+                    $primeiros_numeros_cnpj = substr($cnpj, 0, 12);
+
+                    /**
+                     * Multiplicação do CNPJ
+                     *
+                     * @param string $cnpj Os digitos do CNPJ
+                     * @param int $posicoes A posição que vai iniciar a regressão
+                     * @return int O
+                     *
+                     */
+                    if (!function_exists('multiplica_cnpj')) {
+
+                        function multiplica_cnpj($cnpj, $posicao = 5) {
+                            // Variável para o cálculo
+                            $calculo = 0;
+
+                            // Laço para percorrer os item do cnpj
+                            for ($i = 0; $i < strlen($cnpj); $i++) {
+                                // Cálculo mais posição do CNPJ * a posição
+                                $calculo = $calculo + ( $cnpj[$i] * $posicao );
+
+                                // Decrementa a posição a cada volta do laço
+                                $posicao--;
+
+                                // Se a posição for menor que 2, ela se torna 9
+                                if ($posicao < 2) {
+                                    $posicao = 9;
+                                }
+                            }
+                            // Retorna o cálculo
+                            return $calculo;
+                        }
+
+                    }
+
+                    // Faz o primeiro cálculo
+                    $primeiro_calculo = multiplica_cnpj($primeiros_numeros_cnpj);
+
+                    // Se o resto da divisão entre o primeiro cálculo e 11 for menor que 2, o primeiro
+                    // Dígito é zero (0), caso contrário é 11 - o resto da divisão entre o cálculo e 11
+                    $primeiro_digito = ( $primeiro_calculo % 11 ) < 2 ? 0 : 11 - ( $primeiro_calculo % 11 );
+
+                    // Concatena o primeiro dígito nos 12 primeiros números do CNPJ
+                    // Agora temos 13 números aqui
+                    $primeiros_numeros_cnpj .= $primeiro_digito;
+
+                    // O segundo cálculo é a mesma coisa do primeiro, porém, começa na posição 6
+                    $segundo_calculo = multiplica_cnpj($primeiros_numeros_cnpj, 6);
+                    $segundo_digito = ( $segundo_calculo % 11 ) < 2 ? 0 : 11 - ( $segundo_calculo % 11 );
+
+                    // Concatena o segundo dígito ao CNPJ
+                    $cnpj = $primeiros_numeros_cnpj . $segundo_digito;
+
+                    // Verifica se o CNPJ gerado é idêntico ao enviado
+                    if ($cnpj === $cnpj_original) {
+                        return true;
+                    }
+                },
+                function( $cpf = false ) {
+                    // Exemplo de CPF: 025.462.884-23
+
+                    /**
+                     * Multiplica dígitos vezes posições
+                     *
+                     * @param string $digitos Os digitos desejados
+                     * @param int $posicoes A posição que vai iniciar a regressão
+                     * @param int $soma_digitos A soma das multiplicações entre posições e dígitos
+                     * @return int Os dígitos enviados concatenados com o último dígito
+                     *
+                     */
+                    if ( ! function_exists('calc_digitos_posicoes') ) {
+                        function calc_digitos_posicoes( $digitos, $posicoes = 10, $soma_digitos = 0 ) {
+                            // Faz a soma dos dígitos com a posição
+                            // Ex. para 10 posições:
+                            //   0    2    5    4    6    2    8    8   4
+                            // x10   x9   x8   x7   x6   x5   x4   x3  x2
+                            //   0 + 18 + 40 + 28 + 36 + 10 + 32 + 24 + 8 = 196
+                            for ( $i = 0; $i < strlen( $digitos ); $i++  ) {
+                                $soma_digitos = $soma_digitos + ( $digitos[$i] * $posicoes );
+                                $posicoes--;
+                            }
+
+                            // Captura o resto da divisão entre $soma_digitos dividido por 11
+                            // Ex.: 196 % 11 = 9
+                            $soma_digitos = $soma_digitos % 11;
+
+                            // Verifica se $soma_digitos é menor que 2
+                            if ( $soma_digitos < 2 ) {
+                                // $soma_digitos agora será zero
+                                $soma_digitos = 0;
+                            } else {
+                                // Se for maior que 2, o resultado é 11 menos $soma_digitos
+                                // Ex.: 11 - 9 = 2
+                                // Nosso dígito procurado é 2
+                                $soma_digitos = 11 - $soma_digitos;
+                            }
+
+                            // Concatena mais um dígito aos primeiro nove dígitos
+                            // Ex.: 025462884 + 2 = 0254628842
+                            $cpf = $digitos . $soma_digitos;
+
+                            // Retorna
+                            return $cpf;
+                        }
+                    }
+
+                    // Verifica se o CPF foi enviado
+                    if ( ! $cpf ) {
+                        return false;
+                    }
+
+                    // Remove tudo que não é número do CPF
+                    // Ex.: 025.462.884-23 = 02546288423
+                    $cpf = preg_replace( '/[^0-9]/is', '', $cpf );
+
+                    // Verifica se o CPF tem 11 caracteres
+                    // Ex.: 02546288423 = 11 números
+                    if ( strlen( $cpf ) != 11 ) {
+                        return false;
+                    }
+
+                    // Captura os 9 primeiros dígitos do CPF
+                    // Ex.: 02546288423 = 025462884
+                    $digitos = substr($cpf, 0, 9);
+
+                    // Faz o cálculo dos 9 primeiros dígitos do CPF para obter o primeiro dígito
+                    $novo_cpf = calc_digitos_posicoes( $digitos );
+
+                    // Faz o cálculo dos 10 dígitos do CPF para obter o último dígito
+                    $novo_cpf = calc_digitos_posicoes( $novo_cpf, 11 );
+
+                    // Verifica se o novo CPF gerado é idêntico ao CPF enviado
+                    if ( $novo_cpf === $cpf ) {
+                        // CPF válido
+                        return true;
+                    } else {
+                        // CPF inválido
+                        return false;
+                    }
+                }
+            );
+
+            switch($type){
+                case "nome":
+                    return preg_match( "/^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+ [a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u", $data);
+                break;
+                case "cpfcnpj":
+                    return $fns[1]($data) || $fns[0]($data);
+                break;
+                case "cnpj":
+                    return $fns[0]($data);
+                break;
+                case "cpf":
+                    return $fns[1]($data);
+                break;
+                case "email":
+                    return preg_match("/^[a-z0-9.-]+@[a-z0-9]+\.[a-z]+$/", $data);
+                break;
+            }
+        }
+
+        function simple_loader(UITemplate $content, String $layout="", Array $vars=array(), Array $models=array()){
+            if(!empty($layout)){
+                $content->loadScripts();
+
+                $content->setCode($layout);
+
+                $content->loadParentVars();
+
+                $content->applyVars($vars);
+
+                $content->applyModels($models);
+
+                $content->applyVars($vars);
+            } else {
+                # Default Vars
+
+                $prefix = explode("/",$this->rootDir());
+
+                $prefix = array_filter($prefix);
+
+                $prefix = "/".implode("/", $prefix);
+
+                if($prefix === "/"){
+                    $prefix = "";
+                }
+
+                $content->applyVars(array(
+                    "mydomain" => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER["HTTP_HOST"]}",
+                    "myurl" => preg_replace("/(\?ajax.*)/", "", ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER["HTTP_HOST"]}{$_SERVER["REQUEST_URI"]}")),
+                    "mypath" => $_SERVER["REQUEST_URI"],
+                    "year" => date("Y"),
+                    "URLPrefix" => "{$prefix}"
+                ));
+
+                $content->applyVars($_REQUEST);
+
+                $content->applyVars($_SESSION);
+
+                if(method_exists($this,($met=implode("_", explode("/", $this->rootDir())) . "template_"))){
+                    $content = $this->{$met}($content);
+                }
+
+            }
+
+            return $content;
+        }
+
+        function post(){
+            return $_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST) && count(array_keys($_POST)) > 0;
+        }
 
         function rootDir(String $set="empty"){
             if($set == "empty"){
@@ -35,6 +333,10 @@
         function uiTemplate($template){
             $path = (new __paths)->get();
             $this->uiTemplate = file_get_contents("{$path->templates}/ui/{$template}.html");
+            if(method_exists($this,($met=implode("_", explode("/", $this->rootDir())) . "template_"))){
+                $this->uiTemplateObject = $this->{$met}($this->uiTemplateObject);
+            }
+
         }
 
         function control(String $control, Array $args = array()){
@@ -46,15 +348,8 @@
             return ${"control"}($args);
         }
 
-        function controls(){}
-
         function url(int $index=-1, String $url = "empty"){
-            if($url == "empty"){
-                $url = $_SERVER["REQUEST_URI"];
-            }
-            $url = explode("/", $url);
-            array_shift($url);
-            return $index == -1 ? $url:(isset($url[$index])?$url[$index]:"");
+            return $this->parent()->url($index, $url);
         }
 
         function inUrl(String $needle){
@@ -62,12 +357,18 @@
         }
 
         function getPage(){
+            $this->uiTemplateObject = new UITemplate($this);
             // exit($f = dirname(dirname(dirname(__DIR__))) . $_SERVER["REQUEST_URI"] . ".html");
-            if(method_exists($this,"protect")){
-                $this->protect();
+            if(method_exists($this,($met=implode("_", explode("/", $this->rootDir())) . "protect_"))){
+                $this->{$met}();
             }
 
-            $exec = "page_" . $this->url(count($this->url(-1, $this->rootDir()))-1);
+            if(method_exists($this,($met=implode("_", explode("/", $this->rootDir())) . "create_"))){
+                $this->{$met}();
+            }
+
+            $exec = "page_" . $this->url(0);
+            // exit($exec);
             if(!method_exists($this,$exec)){
                 $file = false;
 
@@ -94,11 +395,17 @@
             }
 
             if(method_exists($this,$exec)){
-                $uiTemplate = new UITemplate($this);
+                $this->uiTemplateObject->setTemplate(is_bool($this->uiTemplate) && !$this->uiTemplate ? $this->defaultUiTemplate : $this->uiTemplate);
 
-                $uiTemplate->setTemplate(is_bool($this->uiTemplate) && !$this->uiTemplate ? $this->defaultUiTemplate : $this->uiTemplate);
+                if(method_exists($this,($met=implode("_", explode("/", $this->rootDir())) . "template_"))){
+                    $this->uiTemplateObject = $this->{$met}($this->uiTemplateObject);
+                }
 
-                $this->{$exec}($uiTemplate);
+                $this->{$exec}($this->uiTemplateObject);
+            }
+
+            if(method_exists($this,($met=implode("_", explode("/", $this->rootDir())) . "end_"))){
+                $this->{$met}();
             }
         }
 
@@ -125,14 +432,6 @@
 
         function database(){
             return new __database();
-        }
-
-        function unMaskCfg($cfg_index){
-            return str_split(decbin(hexdec($cfg_index)));
-        }
-
-        function maskCfg($cfg_array){
-            return dechex(bindec(implode("", $cfg_array)));
         }
     }
 ?>

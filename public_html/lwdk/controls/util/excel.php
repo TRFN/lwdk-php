@@ -1,4 +1,8 @@
 <?php
+/*
+    VER: 1.0
+    LAST-UPDATE: 17/03/2021
+*/
     /* CONTROLE QUE CARREGA ALGUM PLUGIN */
 
     function ctrl_util_excel($args){

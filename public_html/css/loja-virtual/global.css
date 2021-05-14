@@ -1,0 +1,26 @@
+/* Correcao cores do menu */
+
+.hdr-topline a:hover, .hdr-topline li:hover, .hdr-topline li a:hover, .hdr-topline li a:hover i, .hdr-topline li:hover a, .hdr-topline i:hover {
+    color: yellow!important;
+}
+
+.loading-page .swal2-timer-progress-bar {
+    background-color: #851117!important;
+}
+
+.loading-page {
+    padding: 4px!important;
+}
+
+.loading-page h6 {
+    color: #851117!important;
+    font-size: 12px;
+}
+
+.loading-page img {
+    width: 20px;
+}
+
+.loading-page .swal2-content {
+    height: 32px!important;
+}

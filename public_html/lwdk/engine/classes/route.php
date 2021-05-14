@@ -1,7 +1,6 @@
 <?php
     trait route {
         private $Applications;
-        private $defaultApplication = 0;
         private $app = false;
 
         function __construct(){
@@ -11,10 +10,10 @@
         function addApp(APPObject $class, lwdk $parent, bool $default = false){
             $class->setParent($parent);
 
-            $this->Applications[] = $class;
-
             if($default){
-                $this->defaultApplication = count($this->Applications) - 1;
+                array_unshift($this->Applications, $class);
+            } else {
+                $this->Applications[] = $class;
             }
         }
 
@@ -22,25 +21,31 @@
             $this->app = $this->checkDir();
         }
 
-        function url(int $index=-1, String $url = "empty"){
-            if($url == "empty"){
-                $url = $_SERVER["REQUEST_URI"];
-            }
+        function url(int $index=-1, String $url = "empty", $shift=-1){
+            $shift = $shift == -1 ? count($this->url(-1, $this->getApp()->rootDir(), 1)):$shift;
+            $url = $url == "empty" ? $_SERVER["REQUEST_URI"]:$url;
             $url = explode("/", $url);
-            array_shift($url);
-            return $index == -1 ? $url:$url[$index];
+
+            for($i = 0; $i < (int)$shift; $i++){
+                array_shift($url);
+            }
+
+            return $index == -1 ? $url:(isset($url[$index])?$url[$index]:"");
         }
 
         function checkDir(){
+            $thisApplication = -1;
             foreach($this->Applications as $key=>$application){
-                $thisApplication = true;
                 for($i = 0; $i < count($this->url(-1, $application->rootDir()))-1; $i++){
-                    $thisApplication = $thisApplication && ($this->url($i, $application->rootDir()) == $this->url($i));
+                    if($this->url($i, $application->rootDir(), 1) == $this->url($i,$_SERVER["REQUEST_URI"], 1)){
+                        $thisApplication = $key;
+                    }
                 }
-                if($thisApplication)return $key;
             }
-
-            return $this->defaultApplication;
+            if($thisApplication > -1){
+                return $thisApplication;
+            }
+            return 0;
         }
 
         function getApp(){

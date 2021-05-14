@@ -1,4 +1,8 @@
 <?php
+/*
+    VER: 1.0
+    LAST-UPDATE: 17/03/2021
+*/
 function ctrl_util_email($args){
     $instance = new class extends APPControls {
         function initMailer(){
@@ -12,14 +16,12 @@ function ctrl_util_email($args){
             $mail->IsSMTP(); // Define que a mensagem será SMTP
             $mail->Host = "smtp.uni5.net"; // Endereço do servidor SMTP (caso queira utilizar a autenticação, utilize o host smtp.seudomínio.com.br)
             $mail->SMTPAuth = true; // Usar autenticação SMTP (obrigatório para smtp.seudomínio.com.br)
-            $mail->Username = 'mario@hetsi.com.br'; // Usuário do servidor SMTP (endereço de email)
-            $mail->Password = 'bi310309'; // Senha do servidor SMTP (senha do email usado)
+            $mail->Username = "envia@hetsi.com.br"; // Usuário do servidor SMTP (endereço de email)
+            $mail->Password = '102030dw'; // Senha do servidor SMTP (senha do email usado)
 
             // Define o remetente
             // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-            $mail->From = "contato@totalalimentacao.com.br"; // Seu e-mail
-            $mail->Sender = "hetsi@hetsi.com.br"; // Seu e-mail
-            $mail->FromName = "Pesquisa Total Alimentacao"; // Seu nome
+            $mail->Sender = "envia@hetsi.com.br"; // Seu e-mail
 
 
             // Define os dados técnicos da Mensagem
@@ -33,7 +35,7 @@ function ctrl_util_email($args){
 
         function from(String $form_name, String $from_email){
             // =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-            $this->email->From = $form_email; // Seu e-mail
+            $this->email->From = $from_email; // Seu e-mail
             $this->email->FromName = $form_name; // Seu nome
         }
 
@@ -50,6 +52,8 @@ function ctrl_util_email($args){
             $this->email->Body = $content;
             $this->email->AltBody = ' ';
             $this->email->Send();
+
+			return !(strlen($this->email->ErrorInfo) > 0);
         }
     };
 

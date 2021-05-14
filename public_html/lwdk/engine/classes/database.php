@@ -31,8 +31,8 @@
         }
 
         private function like(String $needle, String $haystack, String $options = ""){
-            return !!preg_match( "/^" . str_replace( '%', '(.*?)', trim($needle) ) .  "$/{$options}", trim($haystack) );
-        }
+			return!!(preg_match( "/^" . str_replace( '%', '(.*?)', trim($needle) ) .  "$/{$options}", trim($haystack) ) || ($options=="i"&&!!preg_match( "/^" . str_replace( '%', '(.*?)', trim(strtolower($needle))) .  "$/{$options}", strtolower(trim($haystack)))));
+		}
 
         private function getCurrentDateTime(){
             return array(array(date("d"),date("m"),date("Y")),array(date("H"),date("i"),date("s")));
@@ -137,7 +137,7 @@
             foreach($result as $key=>$value){
                 if($value == -1){
                     unset($result[$key]);
-                } elseif($primary_key_set){
+                } elseif($primary_key_set && is_array($result[$key])){
                     $result[$key]["@ID"] = $key;
                 }
             }
@@ -370,6 +370,14 @@
             $this->setPassword($password);
             $content = array(crypto::crypt($content, $this->password),$content);
             $this->saveData($this->path($file), $content);
+        }
+
+        public function newID($db,$extraquery="",$mainkey="id"){
+            do {
+                $id = (string)mt_rand(1,64369026654353);
+            } while(count($this->query("{$db}", "{$mainkey} = {$id}" . (empty("{$extraquery}")?"":" and {$extraquery}")))>0);
+
+            return $id;
         }
     }
 ?>

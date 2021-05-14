@@ -5,10 +5,9 @@
         use route;
 
         function __construct(){
-            $this->https();
-
-            $this->addApp(new siteAdmin, $this);
-            $this->addApp(new sitePrincipal, $this, true);
+			$this->setup();
+            $this->addApp(new application, $this, true);
+            $this->addApp(new admin_panel, $this);
 
             $this->renderApp();
         }
