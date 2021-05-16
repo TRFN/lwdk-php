@@ -24,15 +24,15 @@ LWDKExec(function(){
             //         return $(this).css("background-image").split('"')[1] + "|" + $(this).parent().find("input:not([type=\"hidden\"])").first().val();
             //     }), ["url","legend"])));
             //
-                $(".apagar").each(function(){
-                    One(this).click(function(){
-                        let the = $(this).parent().parent();
-                        if(confirm("Deseja mesmo remover esta logo?")){the.slideUp('slow', function(){
-                            $("#img_upload")[0].dropzone.enable();
-                            $(this).remove();
-                        })}
-                    });
-                });
+				$(".apagar").each(function(){
+					One(this).click(function(){
+						confirm("Deseja mesmo remover essa imagem?") && $(this).parent().parent().slideUp('slow', function(){
+							$.post(LWDKLocal, {act: "erase", file: (f=$(this).find(".img:first").data("img-url"))});
+							// console.log(f);
+							$(this).remove();
+						})
+					});
+				});
             //
             //     // One("#gallery input", "AutoComplete").change(function(){
             //         map = MapEl("#gallery input:not([type=\"hidden\"])", function(){return $(this).val();});
@@ -56,8 +56,9 @@ LWDKExec(function(){
         }
     });
 
-    const getLogoData = window.getLogoData = (() => {
-        return $("input#img").length?$("input#img").val():null;
+    const getLogoData = window.getLogoData = ((i=1) => {
+		i--;
+        return $("input.img").length?$("input.img").eq(i).val():null;
     });
 
     const setLogoData = window.setLogoData = ((data) => {
@@ -68,7 +69,7 @@ LWDKExec(function(){
         $("#gallery.start").removeClass("start").html("");
         $("#gallery").append(
             `<div class='col-12 text-center'>
-                <input type=hidden id=img value='${data}' />
+                <input type=hidden class=img value='${data}' />
                 <div class='col-12 img' style='background-image:url(/${data})'>
                     <br /><br /><br />
                 </div>

@@ -4,23 +4,6 @@
     color: yellow!important;
 }
 
-.loading-page .swal2-timer-progress-bar {
-    background-color: #851117!important;
-}
-
 .loading-page {
-    padding: 4px!important;
-}
-
-.loading-page h6 {
-    color: #851117!important;
-    font-size: 12px;
-}
-
-.loading-page img {
-    width: 20px;
-}
-
-.loading-page .swal2-content {
-    height: 32px!important;
+    background-color: #851117!important;
 }

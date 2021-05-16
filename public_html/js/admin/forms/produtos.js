@@ -1,12 +1,4 @@
 LWDKExec(function(){
-    if(`{categorias}`.length == 0){
-        return errorRequest(()=>Go("categorias"), "Antes de cadastrar um produto, voc&ecirc; precisa criar uma categoria.");
-    }
-
-    if(`{subcathtml}`.length == 0){
-        return errorRequest(()=>Go("sub_categorias"), "Antes de cadastrar um produto, voc&ecirc; precisa criar uma sub-categoria.");
-    }
-
     One("#img_upload").addClass("dropzone").dropzone({ // The camelized version of the ID of the form element
 
         // The configuration we've talked about above
@@ -21,24 +13,19 @@ LWDKExec(function(){
             var myDropzone = this;
 
             setInterval(function(){
-                $("[data-name=\"imagens\"]").val(JSON.stringify(MapTranslate(MapEl("#gallery .img", function(){
-                    return $(this).css("background-image").split('"')[1] + "|" + $(this).parent().find("input:not([type=\"hidden\"])").first().val();
-                }), ["url","legend"])));
+                $("[data-name=\"imagens\"]").val(JSON.stringify(MapEl("#gallery .img", function(){
+                    return $(this).data("img-url");
+                })));
 
-                $(".apagar").each(function(){
+				$(".apagar").each(function(){
                     One(this).click(function(){
-                        $(this).parent().parent().slideUp('slow', function(){
-                            $(this).remove();
+                        confirm("Deseja mesmo remover essa imagem?") && $(this).parent().parent().slideUp('slow', function(){
+							$.post(LWDKLocal, {act: "erase", file: (f=$(this).find(".img:first").data("img-url"))});
+							// console.log(f);
+							$(this).remove();
                         })
                     });
                 });
-
-                // One("#gallery input", "AutoComplete").change(function(){
-                    map = MapEl("#gallery input:not([type=\"hidden\"])", function(){return $(this).val();});
-                    $("#gallery input").each(function(){
-                        AutoComplete(this, map);
-                    });
-                // });
             }, 500);
 
             myDropzone.on("successmultiple", function(file, response) {
@@ -53,12 +40,11 @@ LWDKExec(function(){
             this.removeFile(file);
         }
     });
-    One("select[data-name=\"categoria\"]", "changed__event").on("changed.bs.select", function(){
-        let $html = {subcategorias}[parseInt(this.value)];
-        // console.log({subcategorias});
-        $("select[data-name=\"subcategoria\"]").prop("disabled", false).html($html).selectpicker("refresh");
-    });
+
     FormCreateAction("dados_produto", function(data){
+		data.itens = data.itens.split(",");
+		// console.log(data);
+		console.log(data.itens);
         let go = function(to){
             to = /(#)/.test(to)?$(to)[0]:$("[data-name=\"" + to + "\"]")[0];
 
@@ -69,26 +55,14 @@ LWDKExec(function(){
             }, 900);
         };
 
-        if(data.nome.length < 3){
-            return errorRequest(()=>go("nome"), "Insira um nome valido para produto...");
-        }
-
-        if(data.categoria == "null"){
-            return errorRequest(()=>go("categoria"), "Selecione uma categoria");
-        }
-
-        if(data.subcategoria == "null"){
-            return errorRequest(()=>go("subcategoria"), "Selecione uma sub-categoria");
-        }
-
-        for(let n of ["largura","altura","comprimento","parcelas-sem-juros"]){
-            if(parseInt(data[n]) < 1){
-                return errorRequest(()=>go(n), "Defina um valor maior do que zero.");
+        for(let n of ["titulo","valor","descricao","itens","ano","combustivel","cambio","cor"]){
+            if(data[n].length < 1){
+                return errorRequest(()=>go(n), (n.charAt(0).toUpperCase() + n.slice(1)) + " &eacute; obrigat&oacute;rio!");
             }
         }
 
         if(data.imagens.length < 1){
-            return errorRequest(()=>go("#img_upload"), "Carregue uma imagem para o produto.");
+            return errorRequest(()=>go("#img_upload"), "Carregue ao menos uma imagem para o produto.");
         }
 
         $.post("{myurl}", {cadprod: data}, function(success){
@@ -101,13 +75,17 @@ LWDKExec(function(){
         });
 
     });
-	
-    let imgs={imagens}, limg = MapEl(imgs,function(){return this.url}), ltxt = MapEl(imgs,function(){return this.legend},false,false);
+
+    let limg={imagens};
+	$("[data-name=\"imagens\"]").val(limg);
+	$("[data-name=\"itens\"]").data("value",{itens});
+
     limg.length > 0 && $.post("{myurl}", {imgs: limg}, function(data){
         $("#gallery.start").removeClass("start").html("");
         $("#gallery").append(data);
-        for(let i = 0; i < ltxt.length; i++){
-            $("#gallery input").eq(i).val(ltxt[i]);
-        }
     });
+
+	setTimeout(()=>{for(n of $("[data-name=\"itens\"]").data("value")){
+		$("[data-name=\"itens\"]").tagEditor('addTag', n);
+	}}, 1e3);
 });

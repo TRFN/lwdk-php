@@ -134,13 +134,17 @@
                 $result = $content[$key];
             }
 
-            foreach($result as $key=>$value){
-                if($value == -1){
-                    unset($result[$key]);
-                } elseif($primary_key_set && is_array($result[$key])){
-                    $result[$key]["@ID"] = $key;
-                }
-            }
+			// var_dump($result);
+
+            if(is_array($result)){
+				foreach($result as $key=>$value){
+	                if($value == -1){
+	                    unset($result[$key]);
+	                } elseif($primary_key_set && is_array($result[$key])){
+	                    $result[$key]["@ID"] = $key;
+	                }
+	            }
+			}
 
             return $result;
         }

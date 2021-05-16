@@ -17,7 +17,7 @@
             exit(json_encode($data));
         }
 
-        function dropzoneUpload(String $storeFolder = 'uploads',$notimg=false, $w=1024, $h=1024, $qlt=40){
+        function dropzoneUpload(String $storeFolder = 'uploads',$notimg=false, $w=1024, $h=1024, $__op__='maxwidth', $qlt=40){
             $ds = DIRECTORY_SEPARATOR;
             $targetPath = (new __paths)->get()->www . $ds. $storeFolder . $ds;  //4
             if (!file_exists($targetPath)) {
@@ -54,7 +54,7 @@
                                 $files[] = $storeFolder . $ds . $name_img . "." . $ext;
 
                                 $resize = new ResizeImage($targetFileResize);
-                                $resize->resizeTo(1024, 1024);
+                                $resize->resizeTo($w, $h, $__op__);
                                 $resize->saveImage($targetFile, 35);
 
                                 unlink($targetFileResize);
@@ -70,7 +70,12 @@
                 }
                 exit(json_encode($files));
             }
-        }
+
+			if(isset($_POST["act"]) && $_POST["act"] == "erase"){
+				unlink((new __paths)->get()->www . $ds. $_POST["file"]);
+				exit;
+			}
+		}
 
         function slug($url){
             $p = str_split(preg_replace("/[^0-9a-z\-]/", "-", strtolower(preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/","/(ç)/","/(Ç)/"),explode(" ","a A e E i I o O u U n N c C"),$url))));
