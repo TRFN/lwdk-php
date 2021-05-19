@@ -16,6 +16,16 @@
             $this->type("application/json");
             exit(json_encode($data));
         }
+		
+		function dbg($v){
+			echo "<pre>";
+			var_dump($v);
+			exit;
+		}
+
+		function pday(){ // 1 = Manha | 2 = Tarde | 3 = Noite
+			$hora = date('H');if( $hora >= 6 && $hora <= 12 )return 0;else if ( $hora > 12 && $hora <=18  )return 1;else return 2;
+		}
 
         function dropzoneUpload(String $storeFolder = 'uploads',$notimg=false, $w=1024, $h=1024, $__op__='maxwidth', $qlt=40){
             $ds = DIRECTORY_SEPARATOR;

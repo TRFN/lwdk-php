@@ -144,7 +144,7 @@
         }
 
         function applyVars(Array $vars){
-            foreach($vars as $key => $value){
+			foreach($vars as $key => $value){
                 if(!is_array($value)){
                     $this->template = explode("{{$key}}", $this->template);
                     $this->template = implode($value, $this->template);
@@ -187,7 +187,8 @@
                 }
             }
         }
-        function getCode($codOnly=false){
+
+		function getCode($codOnly=false){
             $this->template = $this->minifyCode($this->template);
             $this->code = $this->minifyCode($this->code);
 
@@ -209,11 +210,28 @@
 
             return ($ajax?$this->code:implode($this->code,explode("{PAGE_CONTENT}", $this->template)));
         }
-        function setCode($code){
+
+		function setCode($code){
             $this->code = $this->readScripts($this->removerAcentos(file_get_contents($this->parent->parent()->path->layouts . "/{$code}.html")));
             $this->code .= "<script lwdk-addons>LWDKExec(()=>(document.title=`{TITLE} | {$this->parent->empresa}`));</script>";
         }
-        function setTemplate($code){
+
+		function loadModel(String $file, Array $vars = []){
+			$file = file_exists($f=$this->parent->parent()->path->models . "/{$file}.html")
+				? file_get_contents($f)
+				: (string)$file;
+
+			foreach($vars as $k => $value){
+                if(!is_array($value)){
+                    $file = explode("{{$k}}", $file);
+                    $file = implode($value, $file);
+				}
+			}
+
+			return $file;
+		}
+
+		function setTemplate($code){
             $this->template = $this->readScripts($this->removerAcentos($code));
         }
 
