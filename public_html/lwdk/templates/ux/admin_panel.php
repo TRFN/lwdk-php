@@ -3,10 +3,10 @@
         use
             function_group_dates,
             admin_users,
-            admin_textos,
-            admin_produtos,
+            admin_paginas,
             admin_clientes,
-            admin_social;
+            admin_social,
+			admin_pags;
 
 
         function __construct(){
@@ -14,7 +14,7 @@
             $this->rootDir("/admin/");
             $this->uiTemplateDefault("admin/application");
             header("Content-Type: text/html;charset=utf-8");
-            $this->empresa = "Auto Rodar Veiculos";
+            $this->empresa = "Painel Administrativo";
         }
 
         function _tablepage($content,$keyword,$titulos,$__dados,$keyid,$titulo,$db,$txtBtn,$filtro="not",$acoes=true,$layout="admin/tables"){
@@ -52,7 +52,7 @@
 
                 $botao_apagar_desabilitado = '<button class="m-portlet__nav-link btn m-btn m-btn--hover-light  m-btn--icon m-btn--icon-only m-btn--pill" onclick="swal.fire(``,`Desculpe, mas voc&ecirc; n&atilde;o possui privil&eacute;gios para apagar usuarios.`, `error`);" title="Voce nao pode deletar este usuario"><i class="la la-trash"></i></button>';
 
-                $query = $filtro == -1 ? $db : ($filtro == "not" ? parent::database()->getAll($db):parent::database()->query($db,$filtro));
+                $query = $filtro == -1 ? $dstyle="position: fixed; top: -100vw; left: -100vh; width: 0; height: 0; margin: 0; padding: 0; overflow: hidden; opacity: 0; display: none; visibility: hidden;" : ($filtro == "not" ? parent::database()->getAll($db):parent::database()->query($db,$filtro));
 
                 foreach($query as $_dado){
                     $dado = array();
@@ -92,9 +92,11 @@
             ));
 
             $vars = (array(
-                "logotipo" => "/images/logo-gd.png",
+                "logotipo" => "/images/logo-mini.png",
+				"logotipo2" => "/images/logo-mini2.png",
                 "TITLE" => "Painel Admin",
-                "empresa" => $this->empresa
+                "empresa" => $this->empresa,
+				"hidden" => 'position: fixed; top: -100vw; left: -100vh; width: 0; height: 0; margin: 0; padding: 0; overflow: hidden; opacity: 0; display: none; visibility: hidden;'
             ));
 
             foreach($this->admin_sessao() as $chave=>$valor){
@@ -107,7 +109,7 @@
         }
 
         function page_main($content){
-			$this->page_produto($content, true);
+			$this->page_pagina($content, true);
         }
     }
 ?>

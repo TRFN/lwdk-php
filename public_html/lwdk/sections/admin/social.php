@@ -20,22 +20,6 @@
             if($ext){exit("true");}
         }
 
-        function page_contatos($content){
-            $content->minify = true;
-
-            $section = "contatos";
-            $title   = "Contatos";
-
-            if($this->post())return $this->ajax_social($section);
-
-            $content = $this->simple_loader($content, "admin/contatos", array(
-                "TITLE"=>$title,
-                "valuesof" => json_encode($this->database()->get("social",$section))
-            ));
-
-            echo $content->getCode();
-        }
-
 		function action_imgstatic($section = "global", String $folder="images"){
             $this->dropzoneUpload($folder, false, "not-resize");
 
@@ -46,7 +30,7 @@
                     $model .= "
                     <div class='col-12 text-center'>
                         <input type=hidden class=img value='{$img}' />
-                        <div class='col-12 img' style='background-image:url(/{$img})'>
+                        <div class='col-12 img' style='background-image:url(/{$img});background-size: cover;'>
                             <br /><br /><br />
                         </div>
                         <div class='col-12 text-center'>
@@ -82,6 +66,22 @@
             return $content->getCode($partial);
         }
 
+        function page_contatos($content){
+            $content->minify = true;
+
+            $section = "contatos";
+            $title   = "Contatos";
+
+            if($this->post())return $this->ajax_social($section);
+
+            $content = $this->simple_loader($content, "admin/contatos", array(
+                "TITLE"=>$title,
+                "valuesof" => json_encode($this->database()->get("social",$section))
+            ));
+
+            echo $content->getCode();
+        }
+
 		function page_logotipo(UITemplate $content){
 			$folder = "images";
 			$sec    = ["logotipo-white","logotipo-dark"];
@@ -96,11 +96,15 @@
 
 			switch(parent::url(1)){
 				case "home": 	      $pag = "Pagina Inicial"; break;
-				case "nosso-estoque": $pag = "Nosso Estoque"; break;
-				case "a-empresa":     $pag = "A Empresa"; break;
+				case "vela-virtual":  $pag = "Vela Virtual"; break;
+				case "doacoes":       $pag = "Doações"; break;
 				case "como-chegar":   $pag = "Como chegar"; break;
 				case "fale-conosco":  $pag = "Fale Conosco"; break;
-				case "detalhe-veiculo":  $pag = "Pagina de Detalhe de um Veiculo"; break;
+				case "oracoes":       $pag = "Doações"; break;
+				case "fotos":         $pag = "Fotos"; break;
+				case "videos":        $pag = "Videos"; break;
+				case "missas":        $pag = "Missas"; break;
+				case "novo-templo":   $pag = "Novo Templo"; break;
 			}
 
 			if($pag===-1){

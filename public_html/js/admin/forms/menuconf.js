@@ -115,8 +115,10 @@ LWDKExec(()=>setInterval(()=>{
 
 const menu_salvar = window.menu_salvar = ()=>{
     $.post("{myurl}",{data: getData()},function(success){
+		console.log("{myurl}");
+		console.log(success);
         if(success===true){
-            successRequest(refresh, "O menu da loja virtual foi atualizado com sucesso!");
+            successRequest(null, "O menu principal do seu site foi atualizado com sucesso!");
         } else {
             errorRequest(refresh);
         }

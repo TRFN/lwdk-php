@@ -67,10 +67,10 @@ LWDKExec(function(){
         $("#img_upload")[0].dropzone.disable();
 
         $("#gallery.start").removeClass("start").html("");
-        $("#gallery").append(
+        $("#gallery").html(
             `<div class='col-12 text-center'>
                 <input type=hidden class=img value='${data}' />
-                <div class='col-12 img' style='background-image:url(/${data})'>
+                <div class='col-12 img' style='background-image:url(/${data});background-size: cover;'>
                     <br /><br /><br />
                 </div>
                 <div class='col-12 text-center'>

@@ -47,7 +47,7 @@ LWDKInitFunction.addFN(function(){
         });
     });
 
-    $('.summernote').each(function(i){
+    $('.summernote:not(.__summernote__)').each(function(i){
         $(this).summernote("destroy");
         setTimeout(()=>One(this, "summernote").summernote({ height: 250, lang: "pt-BR", followingToolbar: false, toolbar: [
         // [groupName, [list of button]]

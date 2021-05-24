@@ -19,7 +19,7 @@ const AutoComplete = window.AutoComplete = (function AutoComplete(inp, arr) {
   /*the autocomplete function takes two arguments,
   the text field element and an array of possible autocompleted values:*/
   var currentFocus;
-  /*execute a function when someone writes in the text field:*/
+  /*execute a function wheimgn someone writes in the text field:*/
   inp.addEventListener("input", function(e) {
       var a, b, i, val = this.value;
       /*close any already open lists of autocompleted values*/
@@ -185,6 +185,16 @@ const MapTranslate = window.MapTranslate = function MapTranslate(map, k, sep="|"
     return map;
 };
 
+const MapKeyAssign = window.MapKeyAssign = function MapKeyAssign(map){
+	if(!map.length % 2){return false;}
+	newmap = new Object;
+    for(let i = 0; i < map.length; i += 2){
+    	newmap[map[i]] = map[i+1];
+    }
+
+    return newmap;
+};
+
 const GetFormData = window.GetFormData = function GetFormData(context="html"){
     let map = MapTranslate(
             MapEl(context + " [data-name]", function(){
@@ -223,6 +233,7 @@ const GetFormData = window.GetFormData = function GetFormData(context="html"){
 const Go = window.Go = ((url) => {
     LWDKInitFunction.exec();
     setTimeout((()=>history.pushState("","",`{URLPrefix}/${url}/`)),400);
+	initApp = false;
 });
 
 LWDKInitFunction.addFN(()=>$("select.m_selectpicker").each(function(){$('.js-dropdn-close').each(function(){this.click();}); return((s=One(this,"data__live__search")).length>0?s:{selectpicker:()=>{}}).selectpicker({liveSearch: true})}));

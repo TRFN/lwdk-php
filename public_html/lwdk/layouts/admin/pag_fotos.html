@@ -3,11 +3,12 @@
     <div class="m-subheader ">
         <div class="d-flex align-items-center">
             <div class="mr-auto">
-                <h3 class="m-subheader__title ">Logotipo do Site</h3>
+                <h3 class="m-subheader__title ">Página Fotos</h3>
             </div>
             <div>
-                <div class="col text-right">
-                    <button class="btn btn-outline-danger" onclick="return Go('home')"><i class="la la-arrow-left"></i>&nbsp;Voltar</button>&nbsp;&nbsp;&nbsp;
+				<div class="col text-right">
+					<button class="btn btn-outline-danger" onclick="return Go('home')"><i class="la la-arrow-left"></i>&nbsp;Voltar</button>&nbsp;&nbsp;&nbsp;
+                    <a href="/fotos/" target=_blank class="btn btn-outline-info"><i class="la la-globe"></i>&nbsp;Visualizar no Site</a>&nbsp;&nbsp;&nbsp;
                     <button class="btn btn-info" onclick="$('#slideshow').find('.submit:first')[0].click();"><i class="la la-save"></i>&nbsp;Salvar</button>
                 </div>
     		</div>
@@ -23,18 +24,19 @@
                             <div class="m-portlet__body">
                                 <div class="form-group m-form__group row"><div class="col-12"><br></div></div>
                                 <div class="form-group m-form__group row">
-                                    <div class="col-1"></div><label class="col-2 col-form-label">Definir Nova Logo</label>
+                                    <div class="col-1"></div>
+									<label class="col-2 col-form-label">Gerir Imagens</label>
                                     <div class="col-7">
                                         <form action="{myurl}" method="post" class="col-12" id="img_upload" style="border: 0;">
                                             <div class="m-dropzone" style="border: 0;">
                                             <div class="m-dropzone__msg dz-message needsclick">
-                                                <h3 class="m-dropzone__msg-title m-btn m-btn--pill btn-outline-info btn" style="padding: 16px;">Clique aqui para realizar o upload</h3>
+                                                <h3 class="m-dropzone__msg-title m-btn m-btn--pill btn-outline-info btn" style="padding: 16px;">Carregar Imagens</h3>
                                             </div>
                                             </div>
                                         </form>
                                     </div>
                                 </div>
-								<div id="gallery" class="col-12 row fotos-produto sortable start"><div class="col text-center">Voc&ecirc; ainda n&atilde;o fez o upload de imagens...</div></div>
+								<div id="gallery" class="col-12 row fotos-produto sortable start"><div class="col text-center">Carregue Imagens para Começar...</div></div>
                                 <div class="col-12"><br></div>
                             </div>
                             <div class="m-portlet__foot m-portlet__foot--fit">
@@ -60,4 +62,4 @@
     </div>
 </div>
 
-<script lwdk-addons lwdk-vars="on" src="js/admin/forms/logo.js"></script>
+<script lwdk-addons lwdk-vars="on" src="js/admin/forms/pag_fotos.js"></script>
