@@ -24,15 +24,16 @@ LWDKExec(function(){
             //         return $(this).css("background-image").split('"')[1] + "|" + $(this).parent().find("input:not([type=\"hidden\"])").first().val();
             //     }), ["url","legend"])));
             //
-				$(".apagar").each(function(){
-					One(this).click(function(){
-						confirm("Deseja mesmo remover essa imagem?") && $(this).parent().parent().slideUp('slow', function(){
-							$.post(LWDKLocal, {act: "erase", file: (f=$(this).find(".img:first").data("img-url"))});
-							// console.log(f);
-							$(this).remove();
-						})
-					});
-				});
+                $(".apagar").each(function(){
+                    One(this).click(function(){
+                        let the = $(this).parent().parent();
+                        if(confirm("Deseja mesmo remover esta logo?")){the.slideUp('slow', function(){
+                            $("#img_upload")[0].dropzone.enable();
+							$.post(LWDKLocal, {act: "erase", file: (f=$(this).parent().parent().find("#img:first").val())}, ()=>$(this).remove());
+							console.log(f);
+                        })}
+                    });
+                });
             //
             //     // One("#gallery input", "AutoComplete").change(function(){
             //         map = MapEl("#gallery input:not([type=\"hidden\"])", function(){return $(this).val();});
@@ -43,7 +44,7 @@ LWDKExec(function(){
             }, 500);
 
             myDropzone.on("successmultiple", function(file, response) {
-                $.post("{myurl}", {imgs: response}, function(data){
+				$.post("{myurl}", {imgs: response}, function(data){
                     $("#gallery.start").removeClass("start").html("");
                     $("#gallery").append(data);
                     $("#img_upload")[0].dropzone.disable();
@@ -56,30 +57,20 @@ LWDKExec(function(){
         }
     });
 
-    const getLogoData = window.getLogoData = ((i=1) => {
-		i--;
-        return $("input.img").length?$("input.img").eq(i).val():null;
+    const getLogoData = window.getLogoData = (() => {
+        return $("input#img").length?$("input#img").val():null;
     });
 
     const setLogoData = window.setLogoData = ((data) => {
         if(data === null || typeof data !== "string" || typeof data.length !== "number" || data.length === 0)return;
 
-        $("#img_upload")[0].dropzone.disable();
+		$.post("{myurl}", {imgs: [data]}, function(data){
+			if(data === "not-found")return false;
 
-        $("#gallery.start").removeClass("start").html("");
-        $("#gallery").html(
-            `<div class='col-12 text-center'>
-                <input type=hidden class=img value='${data}' />
-                <div class='col-12 img' style='background-image:url(/${data});background-size: cover;'>
-                    <br /><br /><br />
-                </div>
-                <div class='col-12 text-center'>
-                    <button  class='apagar m-btn text-center m-btn--pill btn-outline-danger btn'>
-                        <i class='la las la-trash'></i> Apagar
-                    </button>
-                </div>
-            </div>`
-        );
+			$("#img_upload")[0].dropzone.disable();
+			$("#gallery.start").removeClass("start").html("");
+			$("#gallery").append(data);
+		});
     });
 
     One(".submit").click(function(){

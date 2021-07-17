@@ -31,7 +31,11 @@
         }
 
         private function like(String $needle, String $haystack, String $options = ""){
-			return!!(preg_match( "/^" . str_replace( '%', '(.*?)', trim($needle) ) .  "$/{$options}", trim($haystack) ) || ($options=="i"&&!!preg_match( "/^" . str_replace( '%', '(.*?)', trim(strtolower($needle))) .  "$/{$options}", strtolower(trim($haystack)))));
+			$needle = implode("\/",explode("/",$needle));
+			$needle = preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/","/(ç)/","/(Ç)/"),explode(" ","a A e E i I o O u U n N c C"),$needle);
+			$haystack = preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/","/(ç)/","/(Ç)/"),explode(" ","a A e E i I o O u U n N c C"),$haystack);
+			$match = @preg_match( "/^" . str_replace( '%', '(.*?)', trim($needle)) .  "$/{$options}", trim($haystack) ) || ($options=="i"&&!!preg_match( "/^" . str_replace( '%', '(.*?)', trim(strtolower($needle))) .  "$/{$options}", strtolower(trim($haystack))));
+			return!!($match);
 		}
 
         private function getCurrentDateTime(){
@@ -96,7 +100,7 @@
             $result = array();
             $registered = array();
             foreach($data as $content){
-                if(isset($content[$mainId])){
+        		if(isset($content[$mainId])){
                     $id = sha1($content[$mainId]);
                     $hash = md5(serialize($content));
                     if(!in_array($hash, $registered)){
@@ -254,7 +258,9 @@
                     if($findGlobal){
                         if(is_array($keys)){
                             foreach($keys as $keyword){
-                                $result[$keyword] = $content[$key][$keyword];
+                                if(isset($content[$key][$keyword])){
+									$result[$keyword] = $content[$key][$keyword];
+								}
 
                                 // $test = json_encode($content[$key][$keyword]);
                                 // echo "\n\n-IF1::incorrect::{$test}-\n\n";

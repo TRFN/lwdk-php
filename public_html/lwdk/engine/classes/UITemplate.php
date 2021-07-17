@@ -153,7 +153,13 @@
                     $this->code = implode($value, $this->code);
 
 
-                    $this->template = explode(urlencode("{{$key}}"), $this->template);
+					$this->template = explode(urlencode("{{$key}}"), $this->template);
+                    $this->template = implode($value, $this->template);
+
+                    $this->code = explode(urlencode("{{$key}}"), $this->code);
+                    $this->code = implode($value, $this->code);
+
+					$this->template = explode(urlencode("{{$key}}"), $this->template);
                     $this->template = implode($value, $this->template);
 
                     $this->code = explode(urlencode("{{$key}}"), $this->code);
@@ -212,7 +218,10 @@
         }
 
 		function setCode($code){
-            $this->code = $this->readScripts($this->removerAcentos(file_get_contents($this->parent->parent()->path->layouts . "/{$code}.html")));
+            $this->code = ($this->removerAcentos(file_get_contents($this->parent->parent()->path->layouts . "/{$code}.html")));
+			$this->loadParentVars();
+			$this->code = $this->readScripts($this->code);
+
             $this->code .= "<script lwdk-addons>LWDKExec(()=>(document.title=`{TITLE} | {$this->parent->empresa}`));</script>";
         }
 

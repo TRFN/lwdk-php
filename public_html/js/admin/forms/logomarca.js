@@ -1,11 +1,4 @@
 LWDKExec(function(){
-    // if(`{categorias}`.length == 0){
-    //     return errorRequest(()=>Go("categorias"), "Antes de cadastrar um produto, voc&ecirc; precisa criar uma categoria.");
-    // }
-    // if(`{subcathtml}`.length == 0){
-    //     return errorRequest(()=>Go("sub_categorias"), "Antes de cadastrar um produto, voc&ecirc; precisa criar uma sub-categoria.");
-    // }
-
 	One("#img_upload1").addClass("dropzone").dropzone({ // The camelized version of the ID of the form element
 
         // The configuration we've talked about above
@@ -18,29 +11,6 @@ LWDKExec(function(){
         // The setting up of the dropzone
         init: function() {
             var myDropzone = this;
-
-            setInterval(function(){
-            //     $("[data-name=\"imagens\"]").val(JSON.stringify(MapTranslate(MapEl("#gallery1 .img", function(){
-            //         return $(this).css("background-image").split('"')[1] + "|" + $(this).parent().find("input:not([type=\"hidden\"])").first().val();
-            //     }), ["url","legend"])));
-            //
-				$(".apagar").each(function(){
-					One(this).click(function(){
-						confirm("Deseja mesmo remover essa imagem?") && $(this).parent().parent().slideUp('slow', function(){
-							$.post(LWDKLocal, {act: "erase", file: (f=$(this).find(".img:first").data("img-url"))});
-							// console.log(f);
-							$(this).remove();
-						})
-					});
-				});
-            //
-            //     // One("#gallery1 input", "AutoComplete").change(function(){
-            //         map = MapEl("#gallery1 input:not([type=\"hidden\"])", function(){return $(this).val();});
-            //         $("#gallery1 input").each(function(){
-            //             AutoComplete(this, map);
-            //         });
-            //     // });
-            }, 500);
 
             myDropzone.on("successmultiple", function(file, response) {
                 $.post("{myurl}", {imgs: response}, function(data){
@@ -69,29 +39,6 @@ LWDKExec(function(){
         init: function() {
             var myDropzone = this;
 
-            setInterval(function(){
-            //     $("[data-name=\"imagens\"]").val(JSON.stringify(MapTranslate(MapEl("#gallery1 .img", function(){
-            //         return $(this).css("background-image").split('"')[1] + "|" + $(this).parent().find("input:not([type=\"hidden\"])").first().val();
-            //     }), ["url","legend"])));
-            //
-                $(".apagar").each(function(){
-                    One(this).click(function(){
-                        let the = $(this).parent().parent();
-                        if(confirm("Deseja mesmo remover esta logo?")){the.slideUp('slow', function(){
-                            $("#img_upload2")[0].dropzone.enable();
-                            $(this).remove();
-                        })}
-                    });
-                });
-            //
-            //     // One("#gallery1 input", "AutoComplete").change(function(){
-            //         map = MapEl("#gallery1 input:not([type=\"hidden\"])", function(){return $(this).val();});
-            //         $("#gallery1 input").each(function(){
-            //             AutoComplete(this, map);
-            //         });
-            //     // });
-            }, 500);
-
             myDropzone.on("successmultiple", function(file, response) {
                 $.post("{myurl}", {imgs: response}, function(data){
                     $("#gallery2.start").removeClass("start").html("");
@@ -112,15 +59,15 @@ LWDKExec(function(){
     });
 
     const setLogoData = window.setLogoData = ((data,id=1) => {
-        if(data === null || typeof data !== "string" || typeof data.length !== "number" || data.length === 0)return console.warn("Out: " + String(data));
+        if(data === null || typeof data !== "string" || typeof data.length !== "number" || data.length === 0)return;
 
         $("#img_upload" + String(id))[0].dropzone.disable();
 
         $("#gallery" + String(id) + ".start").removeClass("start").html("");
         $("#gallery" + String(id)).append(
             `<div class='col-12 text-center'>
-                <input type=hidden class=img value='${data}' />
-                <div class='col-12 img' style='background-image:url(/${data})'>
+                <input type=hidden data-img-url='${data}' class=img value='${data}' />
+                <div class='col-12 img' data-img-url='${data}' style='background-image:url(/${data}); background-size: 90%;'>
                     <br /><br /><br />
                 </div>
                 <div class='col-12 text-center'>
@@ -140,4 +87,26 @@ LWDKExec(function(){
 
     typeof {valuesof} == "object" && typeof {valuesof} !== "null" && typeof {valuesof}[0] == "string" && setLogoData({valuesof}[0] , 1);
     typeof {valuesof} == "object" && typeof {valuesof} !== "null" && typeof {valuesof}[1] == "string" && setLogoData({valuesof}[1] , 2);
+
+	setTimeout(()=>{
+		$("#img1 .apagar").each(function(){
+			One(this, "erase1").click(function(){
+				confirm("Deseja mesmo remover essa imagem?") && $(this).parent().parent().slideUp('fast', function(){
+					$.post(LWDKLocal, {act: "erase", file: $(this).find(".img:first").data("img-url")});
+					$("#img_upload1")[0].dropzone.enable();
+					$(this).remove();
+				})
+			});
+		});
+
+		$("#img2 .apagar").each(function(){
+			One(this, "erase2").click(function(){
+				confirm("Deseja mesmo remover essa imagem?") && $(this).parent().parent().slideUp('fast', function(){
+					$.post(LWDKLocal, {act: "erase", file: $(this).find(".img:first").data("img-url")});
+					$("#img_upload2")[0].dropzone.enable();
+					$(this).remove();
+				})
+			});
+		});
+	}, 100);
 });

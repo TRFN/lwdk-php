@@ -1151,3 +1151,5 @@ class PHPExcel
         return $this->uniqueID;
     }
 }
+
+PHPExcel_Settings::setZipClass(PHPExcel_Settings::PCLZIP);

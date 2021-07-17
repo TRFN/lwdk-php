@@ -11,6 +11,21 @@ const FormCreateAction = window.FormCreateAction = function FormCreateAction(id,
     One("#" + id + " .submit:first").click(()=>action(GetFormData("#" + id)));
 };
 
+const confirm_msg = window.confirm_msg = function(msg,act,ico='warning',c1='{cor-tema}',c2='#d33',ts='Sim',tn='Não'){
+	Swal.fire({
+	  title: '',
+	  html: msg,
+	  icon: ico,
+	  showCancelButton: true,
+	  confirmButtonColor: c1,
+	  cancelButtonColor: c2,
+	  confirmButtonText: ts,
+	  cancelButtonText: tn
+	}).then((result) => {
+	  result.isConfirmed&&act();
+  	});
+};
+
 const One = window.One = function One(selector, id="mod"){
     return $($(selector).not(".__" + id + "__").addClass("__" + id + "__")[0]);
 };

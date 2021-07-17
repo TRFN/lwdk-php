@@ -36,9 +36,11 @@ LWDKExec(function(){
 
 	$("input.m-input").each(function(i){
 		if((v=$(this).val()).length==0 && i != 0){
-			$(this).closest("[data-repeater-item]").find("[data-repeater-delete]")[0].click();
+			let e = $(this).closest("[data-repeater-item]").find("[data-repeater-delete]");
+			e.length && e[0].click();
 		}
 	});
 
-	$("[data-repeater-create]")[0].click();
+	let e = $("[data-repeater-create]");
+	e.length && e[0].click();
 });

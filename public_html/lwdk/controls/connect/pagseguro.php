@@ -138,7 +138,7 @@ function ctrl_connect_pagseguro($args){
 					$newdb["forma_pagamento"] = array(
 						"html" => htmlentities($newdb["forma_pagamento"]),
 						"text" => $newdb["forma_pagamento"],
-						"data" => $this->slug($newdb["forma_pagamento"])
+						"data" => $this->args["ux"]->slug($newdb["forma_pagamento"])
 					);
 				}
 

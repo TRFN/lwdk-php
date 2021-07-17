@@ -16,7 +16,7 @@
             $this->type("application/json");
             exit(json_encode($data));
         }
-		
+
 		function dbg($v){
 			echo "<pre>";
 			var_dump($v);
@@ -24,7 +24,46 @@
 		}
 
 		function pday(){ // 1 = Manha | 2 = Tarde | 3 = Noite
-			$hora = date('H');if( $hora >= 6 && $hora <= 12 )return 0;else if ( $hora > 12 && $hora <=18  )return 1;else return 2;
+			$hora = date('H');if( $hora >= 6 && $hora <= 12 )return 0;else if ( $hora > 12 && $hora <= 18  )return 1;else return 2;
+		}
+
+		function distance_coord($lat1, $lon1, $lat2, $lon2) {
+			$lat1 = deg2rad($lat1);
+			$lat2 = deg2rad($lat2);
+			$lon1 = deg2rad($lon1);
+			$lon2 = deg2rad($lon2);
+
+			$dist = (6371 * acos( cos( $lat1 ) * cos( $lat2 ) * cos( $lon2 - $lon1 ) + sin( $lat1 ) * sin($lat2) ) );
+			$dist = number_format($dist, 2, '.', '');
+			return $dist;
+		}
+
+		function ufcpf($cpf){
+			$tabela = [];
+			$tabela[0] = ["RS"]; // Rio Grande do Sul
+			$tabela[1] = ["DF","GO","MT","MS","TO"]; // Distrito Federal, Goiás, Mato Grosso, Mato Grosso do Sul e Tocantins
+			$tabela[2] = ["AM", "PA", "RR", "AP", "AC", "RO"]; // Amazonas, Pará, Roraima, Amapá, Acre e Rondônia
+			$tabela[3] = ["CE", "MA", "PI"]; // Ceará, Maranhão e Piauí
+			$tabela[4] = ["PB", "PE", "AL", "RN"]; // Paraíba, Pernambuco, Alagoas e Rio Grande do Norte
+			$tabela[5] = ["BA", "SE"]; // Bahia e Sergipe
+			$tabela[6] = ["MG"]; // Minas Gerais
+			$tabela[7] = ["RJ", "ES"]; // Rio de Janeiro e Espírito Santo
+			$tabela[8] = ["SP"]; // São Paulo
+			$tabela[9] = ["PR", "SC"]; // Paraná e Santa Catarina
+
+			$cpf = preg_replace("/[^0-9]/", "", $cpf);
+
+
+
+		}
+
+		function compare_strings($a, $b){
+			$str = array(
+				preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/","/(ç)/","/(Ç)/"),explode(" ","a A e E i I o O u U n N c C"),$a),
+				preg_replace(array("/(á|à|ã|â|ä)/","/(Á|À|Ã|Â|Ä)/","/(é|è|ê|ë)/","/(É|È|Ê|Ë)/","/(í|ì|î|ï)/","/(Í|Ì|Î|Ï)/","/(ó|ò|õ|ô|ö)/","/(Ó|Ò|Õ|Ô|Ö)/","/(ú|ù|û|ü)/","/(Ú|Ù|Û|Ü)/","/(ñ)/","/(Ñ)/","/(ç)/","/(Ç)/"),explode(" ","a A e E i I o O u U n N c C"),$b)
+			);
+
+        	return ~~((similar_text(preg_replace("/[^0-9a-z]/", "", strtolower($str[0])),preg_replace("/[^0-9a-z]/", "", strtolower($str[1]))) / max(strlen($str[0]),strlen($str[1]),1)) * 100);
 		}
 
         function dropzoneUpload(String $storeFolder = 'uploads',$notimg=false, $w=1024, $h=1024, $__op__='maxwidth', $qlt=40){
@@ -37,6 +76,12 @@
             if (!empty($_FILES)) {
                 header("Content-Type: application/json");
                 $files = array();
+				if(!is_array($_FILES['file']['tmp_name'])){
+					foreach(array_keys($_FILES['file']) as $i){
+						$_FILES['file'][$i] = array($_FILES['file'][$i]);
+					}
+				}
+				// $this->json($_FILES);
                 foreach(array_keys($_FILES['file']['tmp_name']) as $i){
                     $ext = explode(".", $_FILES['file']['name'][$i]);
                     $ext = end($ext);
@@ -76,14 +121,14 @@
                         move_uploaded_file($tempFile,$targetFile);
                         $files[] = $targetFile;
                     }
-
                 }
                 exit(json_encode($files));
             }
 
+
 			if(isset($_POST["act"]) && $_POST["act"] == "erase"){
-				unlink((new __paths)->get()->www . $ds. $_POST["file"]);
-				exit;
+				unlink($f=((new __paths)->get()->www . $ds . $_POST["file"]));
+				exit("File: {$f}");
 			}
 		}
 
@@ -166,7 +211,7 @@
                         return true;
                     }
                 },
-                function( $cpf = false ) {
+                function($cpf = false) {
                     // Exemplo de CPF: 025.462.884-23
 
                     /**
@@ -264,7 +309,7 @@
                     return $fns[1]($data);
                 break;
                 case "email":
-                    return preg_match("/^[a-z0-9.-]+@[a-z0-9]+\.[a-z]+$/", $data);
+                    return preg_match("/^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,})$/i", $data);
                 break;
             }
         }
@@ -295,13 +340,17 @@
                     $prefix = "";
                 }
 
-                $content->applyVars(array(
+                $content->applyVars($tvars=array(
                     "mydomain" => (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER["HTTP_HOST"]}",
                     "myurl" => preg_replace("/(\?ajax.*)/", "", ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://{$_SERVER["HTTP_HOST"]}{$_SERVER["REQUEST_URI"]}")),
                     "mypath" => $_SERVER["REQUEST_URI"],
                     "year" => date("Y"),
                     "URLPrefix" => "{$prefix}"
                 ));
+
+				foreach($tvars as $vr=>$tk){
+					$this->{$vr} = $tk;
+				}
 
                 $content->applyVars($_REQUEST);
 
@@ -312,6 +361,31 @@
                 }
 
             }
+
+
+
+			// $this->dbg($_SESSION);
+
+			// $this->dbg("isset({$_SESSION["magic__returnback__on__post"]}) && (\"/\" . ".implode("/",$this->url())." == {$_SESSION["magic__returnback__on__page"]}");
+
+			if($this->post() && !isset($_SESSION["magic__returnback__break"]) && isset($_SESSION["magic__returnback__on__post"]) && ("/".implode("/",$this->url())) == $_SESSION["magic__returnback__on__page"]){
+				// $this->dbg("!isset({$_SESSION["magic__returnback__break"]}) && isset({$_SESSION["magic__returnback__on__post"]}) && (\"/\" . ".implode("/",$this->url())." == {$_SESSION["magic__returnback__on__page"]}");
+				$action = ("Location: {$_SESSION["magic__returnback__on__post"]}");
+
+				unset($_SESSION["magic__returnback__on__post"]);
+				unset($_SESSION["magic__returnback__on__page"]);
+
+				header($action);
+			} elseif(isset($_SESSION["magic__returnback__break"])){
+				if($_SESSION["magic__returnback__break"] > 0)unset($_SESSION["magic__returnback__break"]);
+				else $_SESSION["magic__returnback__break"]++;
+			} elseif($this->post() && isset($_POST["magic__returnback__on__post"]) && isset($_POST["magic__returnback__on__page"])){
+				$_SESSION["magic__returnback__on__post"] = $_POST["magic__returnback__on__post"];
+				$_SESSION["magic__returnback__on__page"] = $_POST["magic__returnback__on__page"];
+				$_SESSION["magic__returnback__break"] = 0;
+			}
+
+			// $this->dbg($_SESSION);
 
             return $content;
         }
